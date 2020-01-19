@@ -5,58 +5,72 @@ const vk = new VK({
     
 }); 
 var users = {};
-
+var time;
 //сцены - обрабатывают сообщения
 var scenes = {
     empty: (msg) => {
         var cmd = commands.find(msg.text);
         if(cmd != null){
             cmd.exec(msg, msg.text.match(cmd.regexp));
+           console.log("command " + msg.text + " by " + msg.senderId);
+            
         }else{
             msg.send(constants.text.main, {keyboard: constants.keyboards.main});
         }
     }, 
     poezd: (msg) => {
         commands.list[0].exec(msg, [0, msg.text]);
-        users[msg.from_id].scene = scenes.empty;
+        users[msg.senderId].scene = scenes.empty;
     },
     list: [
         (msg) => {
-            users[msg.from_id].request = msg.text;
-            users[msg.from_id].scene = scenes.list[1];
+            users[msg.senderId].request = msg.text;
+            users[msg.senderId].scene = scenes.list[1];
             msg.send(constants.text.list[1], {keyboard: constants.keyboards.list});
         },
         (msg) => {
-            request = users[msg.from_id].request;
+            request = users[msg.senderId].request;
             if(msg.messagePayload && msg.messagePayload.state != undefined){
                 commands.list[4].exec(msg, [0, request, msg.messagePayload.state]);
             }else{
                 msg.send(constants.text.main, {keyboard: constants.keyboards.main});
             }
-            users[msg.from_id].scene = scenes.empty;
+            users[msg.senderId].scene = scenes.empty;
         }
     ],
     info: (msg) => {
         commands.list[2].exec(msg, [0, msg.messagePayload.name]);
-        users[msg.from_id].scene = scenes.empty;
+        users[msg.senderId].scene = scenes.empty;
+    },
+    chat: (msg) => {
+        var cmd = commands.find(msg.text);
+        if(cmd != null && cmd.chat){
+            cmd.exec(msg, msg.text.match(cmd.regexp));
+            console.log("chat command " + msg.text + " by " + msg.senderId);
+
+        }
     }
 };
 
 //обработчик сообщений
 vk.updates.hear(/(.+)/i, (msg) => {
-    if(!users[msg.from_id]){
-        users[msg.from_id] = {};
-        users[msg.from_id].scene = scenes.empty;
+    time = Date.now();
+    if(msg.peerType == "chat"){
+        scenes.chat(msg);
+    }
+    else{
+    if(!users[msg.senderId]){
+        users[msg.senderId] = {};
+        users[msg.senderId].scene = scenes.empty;
     }
     if(msg.text.match(/(\/back)|(Назад)/i)){
-        users[msg.from_id].scene = scenes.empty;
+        users[msg.senderId].scene = scenes.empty;
     }
     if(msg.messagePayload && msg.messagePayload.name != undefined){
-        users[msg.from_id].scene = scenes.info;
+        users[msg.senderId].scene = scenes.info;
     }
-    users[msg.from_id].scene(msg);
-   
-   
+    users[msg.senderId].scene(msg);
+    }
     
 });
 
@@ -86,19 +100,21 @@ var commands = {
                 }else{
                     msg.send("Ничего не найдено", {keyboard: constants.keyboards.main});    
                 }
+                console.log("time: " + (Date.now() - time));
             })
         }
     }, {
         regexp: /\/photo (.+)/i, 
         name: "/photo",
         description: "фото",
+        chat: true,
         exec: function(msg, args){
             parser.search({name: args[1]}).data((data) => {
                 if(data.links.length > 0){
                     parser.train({id: data.links[0].match(/\/(\d+)\//)[1]}).data((train) => {
                         if(train.pics.length > 0){
                             parser.photo({id: train.pics[0].match(/\/(\d+)\//)[1]}).data((photo) => {
-                                msg.sendPhotos("https://trainpix.org" + photo.link, {"message": "Автор фото: " + photo.author, keyboard: constants.keyboards.main});
+                                msg.sendPhotos("https://trainpix.org" + photo.link, {"message": "Автор фото: " + photo.author, keyboard: (msg.peerType=="chat")?[]:constants.keyboards.main});
                             });
                         }else{
                             msg.send("Фото не найдено", {keyboard: constants.keyboards.main});
@@ -107,6 +123,7 @@ var commands = {
                 }else{
                     msg.send("Ничего не найдено", {keyboard: constants.keyboards.main});
                 }
+                console.log("time: " + (Date.now() - time));
             });
             
         }
@@ -134,9 +151,11 @@ var commands = {
         regexp: /(\/random)|(Случайное фото)/i, 
         name: "/random",
         description: "случайное фото",
+        chat: true,
         exec: function(msg, args){
             parser.random().data((data) => {
-                msg.sendPhotos("https://trainpix.org" + data.link, {"message": data.name + "\nАвтор фото: " + data.author, keyboard: constants.keyboards.random(data.name)});
+                msg.sendPhotos("https://trainpix.org" + data.link, {"message": data.name + "\nАвтор фото: " + data.author, keyboard: (msg.peerType=="chat")?[]:constants.keyboards.random(data.name)});
+                console.log("time: " + (Date.now() - time));
             });
         }
     }, {
@@ -157,7 +176,8 @@ var commands = {
                 else{
                     msg.send("ничего не найдено", {keyboard: constants.keyboards.main});
                 }
-                
+                console.log("time: " + (Date.now() - time));
+
             });
         }
     
@@ -165,13 +185,13 @@ var commands = {
         regexp: /Поезд/i,
         exec: function(msg){
             msg.send(constants.text.poezd, {keyboard: constants.keyboards.back});
-            users[msg.from_id].scene = scenes.poezd;
+            users[msg.senderId].scene = scenes.poezd;
         }
     }, {
         regexp: /Список/i,
         exec: function(msg){
             msg.send(constants.text.list[0], {keyboard: constants.keyboards.back});
-            users[msg.from_id].scene = scenes.list[0];
+            users[msg.senderId].scene = scenes.list[0];
         }
     }],
     
