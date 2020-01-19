@@ -1,1 +1,1 @@
-# vk-tpixbot
+# TrainPix bot v2.0
