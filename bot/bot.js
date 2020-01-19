@@ -1,11 +1,24 @@
 const { VK } = require('vk-io');
 const osmosis = require('osmosis');
+const io = require('@pm2/io');
+
 const vk = new VK({
 	token: process.env.TOKEN
     
 }); 
 var users = {};
 var time;
+var count = 0;
+
+const latency = io.metric({
+  name: 'latency',
+  type: 'histogram',
+  measurement: 'mean'
+});
+
+const usedCommands = io.counter({
+  name: 'Used commands'});
+
 //сцены - обрабатывают сообщения
 var scenes = {
     empty: (msg) => {
@@ -71,7 +84,7 @@ vk.updates.hear(/(.+)/i, (msg) => {
     }
     users[msg.senderId].scene(msg);
     }
-    
+    usedCommands.inc();
 });
 
 //команды
@@ -100,7 +113,7 @@ var commands = {
                 }else{
                     msg.send("Ничего не найдено", {keyboard: constants.keyboards.main});    
                 }
-                console.log("time: " + (Date.now() - time));
+                latency.set(Date.now() - time);
             })
         }
     }, {
@@ -123,7 +136,7 @@ var commands = {
                 }else{
                     msg.send("Ничего не найдено", {keyboard: constants.keyboards.main});
                 }
-                console.log("time: " + (Date.now() - time));
+                latency.set(Date.now() - time);
             });
             
         }
@@ -155,7 +168,7 @@ var commands = {
         exec: function(msg, args){
             parser.random().data((data) => {
                 msg.sendPhotos("https://trainpix.org" + data.link, {"message": data.name + "\nАвтор фото: " + data.author, keyboard: (msg.peerType=="chat")?[]:constants.keyboards.random(data.name)});
-                console.log("time: " + (Date.now() - time));
+                latency.set(Date.now() - time);
             });
         }
     }, {
@@ -176,7 +189,7 @@ var commands = {
                 else{
                     msg.send("ничего не найдено", {keyboard: constants.keyboards.main});
                 }
-                console.log("time: " + (Date.now() - time));
+                latency.set(Date.now() - time);
 
             });
         }
