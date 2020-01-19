@@ -1,0 +1,15 @@
+{
+  "name": "tpbot",
+  "version": "2.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "author": "TTaaaaRRR",
+  "license": "",
+  "dependencies": {
+    "osmosis": "^1.1.10",
+    "vk-io": "^4.0.0-rc.30"
+  }
+}
