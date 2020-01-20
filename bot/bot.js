@@ -127,14 +127,14 @@ var commands = {
                     parser.train({id: data.links[0].match(/\/(\d+)\//)[1]}).data((train) => {
                         if(train.pics.length > 0){
                             parser.photo({id: train.pics[0].match(/\/(\d+)\//)[1]}).data((photo) => {
-                                msg.sendPhotos("https://trainpix.org" + photo.link, {"message": "Автор фото: " + photo.author, keyboard: (msg.peerType=="chat")?"[]":constants.keyboards.main});
+                                msg.sendPhotos("https://trainpix.org" + photo.link, {"message": "Автор фото: " + photo.author, keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
                             });
                         }else{
-                            msg.send("Фото не найдено", {keyboard: (msg.peerType=="chat")?"[]":constants.keyboards.main});
+                            msg.send("Фото не найдено", {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
                         }
                     });
                 }else{
-                    msg.send("Ничего не найдено", {keyboard: (msg.peerType=="chat")?"[]":constants.keyboards.main});
+                    msg.send("Ничего не найдено", {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
                 }
                 latency.set(Date.now() - time);
             });
@@ -167,7 +167,7 @@ var commands = {
         chat: true,
         exec: function(msg, args){
             parser.random().data((data) => {
-                msg.sendPhotos("https://trainpix.org" + data.link, {"message": data.name + "\nАвтор фото: " + data.author, keyboard: (msg.peerType=="chat")?"[]":constants.keyboards.random(data.name)});
+                msg.sendPhotos("https://trainpix.org" + data.link, {"message": data.name + "\nАвтор фото: " + data.author, keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.random(data.name)});
                 latency.set(Date.now() - time);
             });
         }
