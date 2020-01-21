@@ -206,7 +206,15 @@ var commands = {
             msg.send(constants.text.list[0], {keyboard: constants.keyboards.back});
             users[msg.senderId].scene = scenes.list[0];
         }
-    }],
+    }, {
+       regexp: /\/ae (.+)/i,
+       chat: true,
+       exec: (msg, args) => {
+       if(msg.senderId == process.env.ADMIN){
+       msg.send(eval(args[1]));
+       }
+       }
+}],
     
     find: (text) => {
         var res = null;
