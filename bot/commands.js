@@ -121,7 +121,7 @@ var commands = {
         name: "/info",
         description: "информация",
         exec: function(msg, args){
-            tpix.train.search({query: args[1], state: args[2], count: 20}).then((res) => {
+            tpix.train.qsearch({query: args[1], state: args[2], count: 50}).then((res) => {
                 if(res.trains){
                     var text = "";
                     res.trains.forEach((e, i, a) => {
