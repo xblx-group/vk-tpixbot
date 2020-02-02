@@ -95,9 +95,10 @@ var commands = {
         exec: function(msg, args){
             tpix.train.search({query: args[1], count: 1}).then((res) => {
                 if(res.trains){
-                    tpix.train.get({id: res.trains[0].id}).then((data) => {
+                    tpix.train.get({id: res.trains[0].ID}).then((data) => {
+                        
                         var text = constants.trainInfo(data.train);
-                        msg.send(text + "\n" + data.train.info, {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
+                        msg.send(text + "\n\n" + data.train.info, {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
      
                     });
                 }else{
