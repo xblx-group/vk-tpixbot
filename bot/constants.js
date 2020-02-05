@@ -22,7 +22,7 @@ var constants = {
         
     },
     users: {},
-    trainInfo: (train) => {
+    trainInfo: (train, info) => {
         var res = "";
         res += train.name;
         if(train.railway) res+= "\nДорога приписки: " + train.railway.name;
@@ -31,6 +31,7 @@ var constants = {
         if(train.built) res+= "\nПостроен: " + train.built;
         if(train.condition) res+= "\nCостояние: " + constants.states[train.condition];
         if(train.note) res+= "\nПримичание: " + train.note;
+		if(info) res += "\n\n"+info;
         return res;
     }
 };

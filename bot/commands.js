@@ -97,8 +97,8 @@ var commands = {
                 if(res.trains){
                     tpix.train.get({id: res.trains[0].ID}).then((data) => {
                         
-                        var text = constants.trainInfo(data.train);
-                        msg.send(text + "\n\n" + data.train.info, {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
+                        var text = constants.trainInfo(data.train, data.train.info);
+                        msg.send(text, {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
      
                     });
                 }else{
@@ -125,13 +125,13 @@ var commands = {
         name: "/info",
         description: "информация",
         exec: function(msg, args){
-            tpix.train.qsearch({query: args[1], state: args[2], count: 50}).then((res) => {
+            tpix.train.qsearch({query: args[1], state: args[2], count: ((args[2] == 0 || args[2] == undefined)?10:50)}).then((res) => {
                 if(res.trains){
                     var text = "";
                     res.trains.forEach((e, i, a) => {
                         text += e.name + ((args[2] == 0 || args[2] == undefined)?(" - " + constants.states[e.condition] + "\n"):("  "));
                     });
-                    msg.send(text + "\nВсего найдено: " + res.trains.length, {keyboard: constants.keyboards.main});
+                    msg.send(text + "\nВсего найдено: " + res.found, {keyboard: constants.keyboards.main});
                 }
                 else{
                     msg.send("Ничего не найдено", {keyboard: constants.keyboards.main});

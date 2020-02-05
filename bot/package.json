@@ -9,6 +9,7 @@
   "author": "TTaaaaRRR",
   "license": "",
   "dependencies": {
+    "request": "^2.88.0",
     "request-promise": "^4.2.5",
     "vk-io": "^4.0.0-rc.30"
   }

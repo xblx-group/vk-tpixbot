@@ -10,8 +10,10 @@ var api = {
         },
         qsearch: (request) => {
             var query = request.query;
-            var count = 10 || request.count;
-            return(http(api.options({method: "train/qsearch", params: {"query": query, "count": count}})));
+            var count = request.count || 5;
+            var st = request.st || 0;
+            var state = request.state || 0;
+            return(http(api.options({method: "train/qsearch", params: {"query": query, "count": count, "st": st, "state": state}})));
         },
         get: (request) => {
             var id = request.id;
@@ -29,14 +31,13 @@ var api = {
         }
     },
     options: (request) => {
-        var adr = "https://api.openpix.ru/api/v0.5/";
+        var adr = "https://api.openpix.ru/api/v0.6/";
         adr += request.method + "?";
         if(request.params){
             Object.keys(request.params).forEach((i, e, a) => {
                 adr += i + "=" + encodeURIComponent(request.params[i]) + "&";
             });
         }
-       
         return({method: 'GET', uri: adr, json: true});
     }
 };
