@@ -31,7 +31,7 @@ var api = {
         }
     },
     options: (request) => {
-        var adr = "https://api.openpix.ru/api/v0.6/";
+        var adr = "https://api.openpix.ru/api/v0.5/";
         adr += request.method + "?";
         if(request.params){
             Object.keys(request.params).forEach((i, e, a) => {
