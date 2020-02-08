@@ -75,7 +75,7 @@ var commands = {
         chat: true,
         exec: function(msg, args){
             tpix.train.search({query: args[1], count: 1}).then((res) => {
-                if(res.found != "0"){
+                if(res.status_code != 404){
                     if(res.trains[0].photos){
                         tpix.photo.get({id: res.trains[0].photos[0].ID}).then((data) => {
                             msg.sendPhotos(data.photo.image, {message: "\nАвтор фото: " + data.photo.author, keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
@@ -94,7 +94,7 @@ var commands = {
         description: "информация",
         exec: function(msg, args){
             tpix.train.search({query: args[1], count: 1}).then((res) => {
-                if(res.found != "0"){
+                if(res.status_code != 404){
                     tpix.train.get({id: res.trains[0].ID}).then((data) => {
                         
                         var text = constants.trainInfo(data.train, data.train.info);
@@ -126,7 +126,7 @@ var commands = {
         description: "информация",
         exec: function(msg, args){
             tpix.train.qsearch({query: args[1], state: args[2], count: ((args[2] == 0 || args[2] == undefined)?10:50)}).then((res) => {
-                if(res.found != "0"){
+                if(res.status_code != 404){
                     var text = "";
                     res.trains.forEach((e, i, a) => {
                         text += e.name + ((args[2] == 0 || args[2] == undefined)?(" - " + constants.states[e.condition] + "\n"):("  "));
