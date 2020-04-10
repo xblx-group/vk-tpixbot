@@ -246,8 +246,8 @@ var parser = {
     train: (request) => {
         return(osmosis.get("https://trainpix.org/vehicle/" + request.id)
         .set({"name": "h1",
-            "keys": ['.p0 tr.h21 > td.ds'],
-            "props": ['.p0 tr.h21 > td.d'],
+            "keys": ['.horlines tr.h21 > td.ds'],
+            "props": ['.horlines tr.h21 > td.d'],
             "pics": ['a.prw@href']
         }));
     },
