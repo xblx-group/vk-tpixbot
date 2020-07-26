@@ -1,23 +1,31 @@
-const { VK } = require('vk-io');
+const { VK, MessageContext } = require('vk-io');
 const osmosis = require('osmosis');
-const io = require('@pm2/io');
+//const io = require('@pm2/io');
 
 const vk = new VK({
 	token: process.env.TOKEN
     
-}); 
+});
+
+const { api } = vk;
+const { upload } = vk;
+
+
+
 var users = {};
 var time;
 var count = 0;
 
-const latency = io.metric({
+/*const latency = io.metric({
   name: 'latency',
   type: 'histogram',
   measurement: 'mean'
-});
+});*
 
 const usedCommands = io.counter({
   name: 'Used commands'});
+
+ */
 
 //сцены - обрабатывают сообщения
 var scenes = {
@@ -84,7 +92,7 @@ vk.updates.hear(/(.+)/i, (msg) => {
     }
     users[msg.senderId].scene(msg);
     }
-    usedCommands.inc();
+   // usedCommands.inc();
 });
 
 //команды
@@ -113,7 +121,7 @@ var commands = {
                 }else{
                     msg.send("Ничего не найдено", {keyboard: constants.keyboards.main});    
                 }
-                latency.set(Date.now() - time);
+                //latency.set(Date.now() - time);
             })
         }
     }, {
@@ -127,7 +135,7 @@ var commands = {
                     parser.train({id: data.links[0].match(/\/(\d+)\//)[1]}).data((train) => {
                         if(train.pics.length > 0){
                             parser.photo({id: train.pics[0].match(/\/(\d+)\//)[1]}).data((photo) => {
-                                msg.sendPhotos("https://trainpix.org" + photo.link, {"message": "Автор фото: " + photo.author, keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
+                                upload.messagePhoto({source: "https://trainpix.org" + photo.link}).then(a => {msg.send("Автор фото: " + photo.author, {attachment: a,keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main})});
                             });
                         }else{
                             msg.send("Фото не найдено", {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
@@ -136,7 +144,7 @@ var commands = {
                 }else{
                     msg.send("Ничего не найдено", {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
                 }
-                latency.set(Date.now() - time);
+                //latency.set(Date.now() - time);
             });
             
         }
@@ -167,8 +175,9 @@ var commands = {
         chat: true,
         exec: function(msg, args){
             parser.random().data((data) => {
-                msg.sendPhotos("https://trainpix.org" + data.link, {"message": data.name + "\nАвтор фото: " + data.author, keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.random(data.name)});
-                latency.set(Date.now() - time);
+                upload.messagePhoto({source: "https://trainpix.org" + data.link}).then(a => {msg.send(data.name + "\nАвтор фото: " + data.author,
+                    {attachment: a, keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.random(data.name)})});
+                //latency.set(Date.now() - time);
             });
         }
     }, {
@@ -189,7 +198,7 @@ var commands = {
                 else{
                     msg.send("ничего не найдено", {keyboard: constants.keyboards.main});
                 }
-                latency.set(Date.now() - time);
+               // latency.set(Date.now() - time);
 
             });
         }
@@ -210,7 +219,7 @@ var commands = {
        regexp: /\/ae (.+)/i,
        chat: true,
        exec: (msg, args) => {
-       if(msg.senderId == process.env.ADMIN){
+       if(msg.senderId == 212673602){
        msg.send(eval(args[1]));
        }
        }
