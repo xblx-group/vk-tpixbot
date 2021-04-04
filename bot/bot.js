@@ -1,11 +1,14 @@
 const { VK, MessageContext } = require('vk-io');
 const osmosis = require('osmosis');
+const { HearManager } = require('@vk-io/hear');
 //const io = require('@pm2/io');
 
 const vk = new VK({
 	token: process.env.TOKEN
-    
 });
+
+
+const hearManager = new HearManager(MessageContext);
 
 const { api } = vk;
 const { upload } = vk;
@@ -73,8 +76,10 @@ var scenes = {
     }
 };
 
+vk.updates.on('message_new', hearManager.middleware);
+
 //обработчик сообщений
-vk.updates.hear(/(.+)/i, (msg) => {
+hearManager.hear(/(.+)/i, (msg) => {
     time = Date.now();
     if(msg.peerType == "chat"){
         scenes.chat(msg);
@@ -112,7 +117,7 @@ var commands = {
                 
                         if(train.pics.length > 0){
                             parser.photo({id: train.pics[0].match(/\/(\d+)\//)[1]}).data((photo) => {
-                                msg.sendPhotos("https://trainpix.org" + photo.link, {"message": train.name + "\n" + desc + "\nАвтор фото: " + photo.author, keyboard: constants.keyboards.main});
+                                msg.sendPhotos({value: "https://trainpix.org" + photo.link}, {"message": train.name + "\n" + desc + "\nАвтор фото: " + photo.author, keyboard: constants.keyboards.main});
                             });
                         }else{
                             msg.send(train.name + "\n" + desc + "\nФото не найдено", {keyboard: constants.keyboards.main});
@@ -135,7 +140,7 @@ var commands = {
                     parser.train({id: data.links[0].match(/\/(\d+)\//)[1]}).data((train) => {
                         if(train.pics.length > 0){
                             parser.photo({id: train.pics[0].match(/\/(\d+)\//)[1]}).data((photo) => {
-                                upload.messagePhoto({source: "https://trainpix.org" + photo.link}).then(a => {msg.send("Автор фото: " + photo.author, {attachment: a,keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main})});
+                                upload.messagePhoto({source: {value: "https://trainpix.org" + photo.link}}).then(a => {msg.send("Автор фото: " + photo.author, {attachment: a,keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main})});
                             });
                         }else{
                             msg.send("Фото не найдено", {keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.main});
@@ -174,11 +179,24 @@ var commands = {
         description: "случайное фото",
         chat: true,
         exec: function(msg, args){
-            parser.random().data((data) => {
-                upload.messagePhoto({source: "https://trainpix.org" + data.link}).then(a => {msg.send(data.name + "\nАвтор фото: " + data.author,
-                    {attachment: a, keyboard: (msg.peerType=="chat")?'{"buttons":[],"one_time":true}':constants.keyboards.random(data.name)})});
-                //latency.set(Date.now() - time);
-            });
+            var first = true;
+            osmosis.get("https://trainpix.org/ph.php")
+                .set({"link": "#ph@src",
+                    "author": ".cmt_aname a",
+                    "name": ".pwrite a"
+                }).data((data) => {
+                if(first) {
+                    upload.messagePhoto({source: {value: "https://trainpix.org" + data.link}}).then(a => {
+                        msg.send(data.name + "\nАвтор фото: " + data.author,
+                            {
+                                attachment: a,
+                                keyboard: (msg.peerType == "chat") ? '{"buttons":[],"one_time":true}' : constants.keyboards.random(data.name)
+                            })
+                    });
+                    //latency.set(Date.now() - time);
+                }
+                first = false;
+            }).error(console.log);
         }
     }, {
         regexp: /\/list (.+) (.+)/i, 
@@ -267,10 +285,12 @@ var parser = {
         }));
     }, 
     random: () => {
+
+        console.log("hui");
         return(osmosis.get("https://trainpix.org/ph.php")
          .set({"link": "#ph@src",
             "author": ".cmt_aname a",
-            "name": ".narrow a"
+            "name": ".pwrite a"
         }));
     }
 }
